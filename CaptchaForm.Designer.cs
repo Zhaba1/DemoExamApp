@@ -109,7 +109,7 @@ namespace DemoExamApp
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(500, 320);
+            this.ClientSize = new System.Drawing.Size(620, 320);
             this.Controls.Add(this.lblAttempts);
             this.Controls.Add(this.btnCheck);
             this.Controls.Add(this.zone4);

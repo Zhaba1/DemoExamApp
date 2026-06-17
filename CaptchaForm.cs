@@ -121,15 +121,19 @@ namespace DemoExamApp
 
         /// <summary>
         /// Возвращает случайную позицию для кусочка капчи.
-        /// Кусочки размещаются справа от зон.
+        /// Кусочки размещаются в видимой области справа от зон.
         /// </summary>
         private Point GetRandomPiecePosition()
         {
+            // Размер кусочка
+            int pieceWidth = 120;
+            int pieceHeight = 90;
+
             // Область для случайного размещения: справа от зон
             int minX = 320;
-            int maxX = this.ClientSize.Width - 130;
+            int maxX = this.ClientSize.Width - pieceWidth - 10;
             int minY = 30;
-            int maxY = this.ClientSize.Height - 110;
+            int maxY = this.ClientSize.Height - pieceHeight - 10;
 
             // Защита от некорректного диапазона
             if (maxX <= minX) maxX = minX + 150;
