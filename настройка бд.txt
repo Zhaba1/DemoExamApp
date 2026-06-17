@@ -1,0 +1,1 @@
+& "C:\Program Files\MySQL\MySQL Server 8.0\bin\mysql.exe" --default-character-set=utf8mb4 -u root -p789654123 DemoExamDB -e "source C:/Users/kille/source/repos/Open code/Open code/DemoExamApp/init_database.sql"

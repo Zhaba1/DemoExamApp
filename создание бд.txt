@@ -1,0 +1,1 @@
+& "C:\Program Files\MySQL\MySQL Server 8.0\bin\mysql.exe" -u root -p789654123 -e "CREATE DATABASE IF NOT EXISTS DemoExamDB CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
