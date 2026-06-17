@@ -64,7 +64,7 @@ namespace DemoExamApp
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Ошибка подключения к БД: {ex.Message}", "Ошибка",
+                MessageBox.Show($"Ошибка при входе: {ex.Message}", "Ошибка",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
