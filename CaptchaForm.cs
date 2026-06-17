@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -13,6 +12,7 @@ namespace DemoExamApp
         private readonly User _currentUser;
         private Database _db;
         private readonly List<PictureBox> _zones = new List<PictureBox>();
+        private readonly List<PictureBox> _pieces = new List<PictureBox>();
         private readonly Random _random = new Random();
         private int _attemptsRemaining = 3;
 
@@ -38,6 +38,14 @@ namespace DemoExamApp
             _zones.Add(zone2);
             _zones.Add(zone3);
             _zones.Add(zone4);
+
+            // Зоны — только цели, не перетаскиваются
+            foreach (var zone in _zones)
+            {
+                zone.AllowDrop = true;
+                zone.DragEnter += Zone_DragEnter;
+                zone.DragDrop += Zone_DragDrop;
+            }
         }
 
         /// <summary>
@@ -70,26 +78,63 @@ namespace DemoExamApp
 
         private void InitializeCaptcha()
         {
-            var pieces = LoadCaptchaPieces();
-
-            // Случайный поворот каждого куска
-            foreach (var piece in pieces)
+            // Удаляем старые кусочки, если есть
+            foreach (var piece in _pieces)
             {
-                int rotations = _random.Next(0, 4);
-                RotatePiece(piece, rotations);
+                this.Controls.Remove(piece);
+                piece.Dispose();
+            }
+            _pieces.Clear();
+
+            // Очищаем зоны
+            foreach (var zone in _zones)
+            {
+                zone.Image = null;
+                zone.Tag = null;
             }
 
-            // Перемешиваем зоны
+            var pieces = LoadCaptchaPieces();
+
+            // Перемешиваем кусочки
             var shuffled = pieces.OrderBy(x => _random.Next()).ToList();
 
-            // Распределяем по зонам
-            for (int i = 0; i < _zones.Count; i++)
+            // Создаём перетаскиваемые кусочки в случайных местах
+            for (int i = 0; i < shuffled.Count; i++)
             {
-                _zones[i].Image = shuffled[i].Image;
-                _zones[i].Tag = shuffled[i];
+                var pieceBox = new PictureBox
+                {
+                    Size = new Size(120, 90),
+                    SizeMode = PictureBoxSizeMode.Zoom,
+                    BorderStyle = BorderStyle.FixedSingle,
+                    Image = shuffled[i].Image,
+                    Tag = shuffled[i],
+                    Location = GetRandomPiecePosition()
+                };
+
+                pieceBox.MouseDown += Piece_MouseDown;
+                this.Controls.Add(pieceBox);
+                _pieces.Add(pieceBox);
             }
 
             UpdateAttemptsLabel();
+        }
+
+        /// <summary>
+        /// Возвращает случайную позицию для кусочка капчи.
+        /// Кусочки размещаются справа от зон или ниже них.
+        /// </summary>
+        private Point GetRandomPiecePosition()
+        {
+            // Область для случайного размещения: справа от зон
+            int minX = 320;
+            int maxX = this.ClientSize.Width - 130;
+            int minY = 30;
+            int maxY = 220;
+
+            int x = _random.Next(minX, maxX);
+            int y = _random.Next(minY, maxY);
+
+            return new Point(x, y);
         }
 
         private void UpdateAttemptsLabel()
@@ -97,36 +142,13 @@ namespace DemoExamApp
             lblAttempts.Text = $"Осталось попыток: {_attemptsRemaining}";
         }
 
-        private void RotatePiece(CaptchaPiece piece, int times)
+        private void Piece_MouseDown(object sender, MouseEventArgs e)
         {
-            for (int i = 0; i < times; i++)
-            {
-                piece.Image.RotateFlip(RotateFlipType.Rotate90FlipNone);
-                piece.CurrentRotation = (piece.CurrentRotation + 90) % 360;
-            }
-        }
-
-        private void RotatePiece90(CaptchaPiece piece)
-        {
-            piece.Image.RotateFlip(RotateFlipType.Rotate90FlipNone);
-            piece.CurrentRotation = (piece.CurrentRotation + 90) % 360;
-        }
-
-        private void Zone_MouseDown(object sender, MouseEventArgs e)
-        {
-            var zone = sender as PictureBox;
-            if (zone?.Tag == null) return;
-
             if (e.Button == MouseButtons.Left)
             {
-                zone.DoDragDrop(zone, DragDropEffects.Move);
-            }
-            else if (e.Button == MouseButtons.Right)
-            {
-                var piece = (CaptchaPiece)zone.Tag;
-                RotatePiece90(piece);
-                zone.Image = piece.Image;
-                zone.Refresh();
+                var piece = sender as PictureBox;
+                if (piece != null)
+                    piece.DoDragDrop(piece, DragDropEffects.Move);
             }
         }
 
@@ -143,20 +165,18 @@ namespace DemoExamApp
             var target = sender as PictureBox;
             var source = e.Data.GetData(typeof(PictureBox)) as PictureBox;
 
-            if (target == null || source == null || target == source) return;
+            if (target == null || source == null || !_zones.Contains(target)) return;
 
-            // Меняем местами изображения и теги
-            var tempImage = target.Image;
-            var tempTag = target.Tag;
-
+            // Переносим изображение и тег из кусочка в зону
             target.Image = source.Image;
             target.Tag = source.Tag;
 
-            source.Image = tempImage;
-            source.Tag = tempTag;
+            // Удаляем кусочек с формы
+            this.Controls.Remove(source);
+            source.Dispose();
+            _pieces.Remove(source);
 
             target.Refresh();
-            source.Refresh();
         }
 
         private void btnCheck_Click(object sender, EventArgs e)
@@ -166,7 +186,7 @@ namespace DemoExamApp
             for (int i = 0; i < _zones.Count; i++)
             {
                 var piece = _zones[i].Tag as CaptchaPiece;
-                if (piece == null || piece.CorrectIndex != i || piece.CurrentRotation != 0)
+                if (piece == null || piece.CorrectIndex != i)
                 {
                     isCorrect = false;
                     break;
@@ -226,12 +246,11 @@ namespace DemoExamApp
     }
 
     /// <summary>
-    /// Кусочек капчи с информацией о правильном положении и повороте.
+    /// Кусочек капчи с информацией о правильном положении.
     /// </summary>
     public class CaptchaPiece
     {
         public int CorrectIndex { get; set; }
         public Bitmap Image { get; set; }
-        public int CurrentRotation { get; set; } = 0;
     }
 }

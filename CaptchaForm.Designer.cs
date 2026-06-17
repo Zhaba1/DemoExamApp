@@ -43,7 +43,6 @@ namespace DemoExamApp
             this.zone1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.zone1.TabIndex = 0;
             this.zone1.TabStop = false;
-            this.zone1.MouseDown += new System.Windows.Forms.MouseEventHandler(this.Zone_MouseDown);
             this.zone1.DragEnter += new System.Windows.Forms.DragEventHandler(this.Zone_DragEnter);
             this.zone1.DragDrop += new System.Windows.Forms.DragEventHandler(this.Zone_DragDrop);
             this.zone1.AllowDrop = true;
@@ -57,7 +56,6 @@ namespace DemoExamApp
             this.zone2.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.zone2.TabIndex = 1;
             this.zone2.TabStop = false;
-            this.zone2.MouseDown += new System.Windows.Forms.MouseEventHandler(this.Zone_MouseDown);
             this.zone2.DragEnter += new System.Windows.Forms.DragEventHandler(this.Zone_DragEnter);
             this.zone2.DragDrop += new System.Windows.Forms.DragEventHandler(this.Zone_DragDrop);
             this.zone2.AllowDrop = true;
@@ -71,7 +69,6 @@ namespace DemoExamApp
             this.zone3.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.zone3.TabIndex = 2;
             this.zone3.TabStop = false;
-            this.zone3.MouseDown += new System.Windows.Forms.MouseEventHandler(this.Zone_MouseDown);
             this.zone3.DragEnter += new System.Windows.Forms.DragEventHandler(this.Zone_DragEnter);
             this.zone3.DragDrop += new System.Windows.Forms.DragEventHandler(this.Zone_DragDrop);
             this.zone3.AllowDrop = true;
@@ -85,7 +82,6 @@ namespace DemoExamApp
             this.zone4.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.zone4.TabIndex = 3;
             this.zone4.TabStop = false;
-            this.zone4.MouseDown += new System.Windows.Forms.MouseEventHandler(this.Zone_MouseDown);
             this.zone4.DragEnter += new System.Windows.Forms.DragEventHandler(this.Zone_DragEnter);
             this.zone4.DragDrop += new System.Windows.Forms.DragEventHandler(this.Zone_DragDrop);
             this.zone4.AllowDrop = true;
@@ -113,7 +109,7 @@ namespace DemoExamApp
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(330, 320);
+            this.ClientSize = new System.Drawing.Size(500, 320);
             this.Controls.Add(this.lblAttempts);
             this.Controls.Add(this.btnCheck);
             this.Controls.Add(this.zone4);
