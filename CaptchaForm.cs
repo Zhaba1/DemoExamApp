@@ -12,7 +12,7 @@ namespace DemoExamApp
         private readonly User _currentUser;
         private Database _db;
         private readonly List<PictureBox> _zones = new List<PictureBox>();
-        private readonly List<PictureBox> _pieces = new List<PictureBox>();
+        private readonly List<PictureBox> _spawns = new List<PictureBox>();
         private readonly Random _random = new Random();
         private int _attemptsRemaining = 3;
 
@@ -21,6 +21,7 @@ namespace DemoExamApp
         {
             InitializeComponent();
             InitializeZones();
+            InitializeSpawns();
         }
 
         public CaptchaForm(User user)
@@ -28,6 +29,7 @@ namespace DemoExamApp
             _currentUser = user;
             InitializeComponent();
             InitializeZones();
+            InitializeSpawns();
             _db = new Database();
             InitializeCaptcha();
         }
@@ -45,6 +47,21 @@ namespace DemoExamApp
                 zone.AllowDrop = true;
                 zone.DragEnter += Zone_DragEnter;
                 zone.DragDrop += Zone_DragDrop;
+            }
+        }
+
+        private void InitializeSpawns()
+        {
+            _spawns.Add(spawn1);
+            _spawns.Add(spawn2);
+            _spawns.Add(spawn3);
+            _spawns.Add(spawn4);
+
+            // Клетки справа — источники кусочков
+            foreach (var spawn in _spawns)
+            {
+                spawn.AllowDrop = false;
+                spawn.MouseDown += Spawn_MouseDown;
             }
         }
 
@@ -78,14 +95,6 @@ namespace DemoExamApp
 
         private void InitializeCaptcha()
         {
-            // Удаляем старые кусочки, если есть
-            foreach (var piece in _pieces)
-            {
-                this.Controls.Remove(piece);
-                piece.Dispose();
-            }
-            _pieces.Clear();
-
             // Очищаем зоны
             foreach (var zone in _zones)
             {
@@ -93,56 +102,26 @@ namespace DemoExamApp
                 zone.Tag = null;
             }
 
+            // Очищаем клетки справа
+            foreach (var spawn in _spawns)
+            {
+                spawn.Image = null;
+                spawn.Tag = null;
+            }
+
             var pieces = LoadCaptchaPieces();
 
             // Перемешиваем кусочки
             var shuffled = pieces.OrderBy(x => _random.Next()).ToList();
 
-            // Создаём перетаскиваемые кусочки в случайных местах
-            for (int i = 0; i < shuffled.Count; i++)
+            // Распределяем кусочки по клеткам справа в случайном порядке
+            for (int i = 0; i < _spawns.Count; i++)
             {
-                var pieceBox = new PictureBox
-                {
-                    Size = new Size(120, 90),
-                    SizeMode = PictureBoxSizeMode.Zoom,
-                    BorderStyle = BorderStyle.FixedSingle,
-                    Image = shuffled[i].Image,
-                    Tag = shuffled[i],
-                    Location = GetRandomPiecePosition()
-                };
-
-                pieceBox.MouseDown += Piece_MouseDown;
-                this.Controls.Add(pieceBox);
-                _pieces.Add(pieceBox);
+                _spawns[i].Image = shuffled[i].Image;
+                _spawns[i].Tag = shuffled[i];
             }
 
             UpdateAttemptsLabel();
-        }
-
-        /// <summary>
-        /// Возвращает случайную позицию для кусочка капчи.
-        /// Кусочки размещаются в видимой области справа от зон.
-        /// </summary>
-        private Point GetRandomPiecePosition()
-        {
-            // Размер кусочка
-            int pieceWidth = 120;
-            int pieceHeight = 90;
-
-            // Область для случайного размещения: справа от зон
-            int minX = 320;
-            int maxX = this.ClientSize.Width - pieceWidth - 10;
-            int minY = 30;
-            int maxY = this.ClientSize.Height - pieceHeight - 10;
-
-            // Защита от некорректного диапазона
-            if (maxX <= minX) maxX = minX + 150;
-            if (maxY <= minY) maxY = minY + 150;
-
-            int x = _random.Next(minX, maxX);
-            int y = _random.Next(minY, maxY);
-
-            return new Point(x, y);
         }
 
         private void UpdateAttemptsLabel()
@@ -150,13 +129,13 @@ namespace DemoExamApp
             lblAttempts.Text = $"Осталось попыток: {_attemptsRemaining}";
         }
 
-        private void Piece_MouseDown(object sender, MouseEventArgs e)
+        private void Spawn_MouseDown(object sender, MouseEventArgs e)
         {
             if (e.Button == MouseButtons.Left)
             {
-                var piece = sender as PictureBox;
-                if (piece != null)
-                    piece.DoDragDrop(piece, DragDropEffects.Move);
+                var spawn = sender as PictureBox;
+                if (spawn?.Tag != null)
+                    spawn.DoDragDrop(spawn, DragDropEffects.Move);
             }
         }
 
@@ -175,16 +154,18 @@ namespace DemoExamApp
 
             if (target == null || source == null || !_zones.Contains(target)) return;
 
-            // Переносим изображение и тег из кусочка в зону
+            // Если в зоне уже есть кусочек, меняем местами
+            var tempImage = target.Image;
+            var tempTag = target.Tag;
+
             target.Image = source.Image;
             target.Tag = source.Tag;
 
-            // Удаляем кусочек с формы
-            this.Controls.Remove(source);
-            source.Dispose();
-            _pieces.Remove(source);
+            source.Image = tempImage;
+            source.Tag = tempTag;
 
             target.Refresh();
+            source.Refresh();
         }
 
         private void btnCheck_Click(object sender, EventArgs e)
