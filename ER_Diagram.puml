@@ -1,0 +1,96 @@
+@startuml
+
+!theme plain
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+
+title ER-диаграмма базы данных DemoExamDB (3NF)
+
+entity "Users" as Users {
+    * Id : INT <<PK>>
+    --
+    * Login : VARCHAR(50)
+    * Password : VARCHAR(50)
+    * IsAdmin : TINYINT
+    * IsBlocked : TINYINT
+}
+
+entity "Companies" as Companies {
+    * Id : INT <<PK>>
+    --
+    ExternalId : VARCHAR(20) <<UQ>>
+    * Name : VARCHAR(100)
+    INN : VARCHAR(20)
+    Address : VARCHAR(255)
+    Phone : VARCHAR(50)
+    IsSalesman : BOOLEAN
+    IsBuyer : BOOLEAN
+}
+
+entity "Products" as Products {
+    * Id : INT <<PK>>
+    --
+    * Name : VARCHAR(100)
+    * Price : DECIMAL(10,2)
+    * Unit : VARCHAR(50)
+}
+
+entity "Materials" as Materials {
+    * Id : INT <<PK>>
+    --
+    * Name : VARCHAR(100)
+    * Price : DECIMAL(10,2)
+    * Unit : VARCHAR(50)
+}
+
+entity "ProductMaterials" as ProductMaterials {
+    * Id : INT <<PK>>
+    --
+    * ProductId : INT <<FK>>
+    * MaterialId : INT <<FK>>
+    * Quantity : DECIMAL(10,3)
+}
+
+entity "Orders" as Orders {
+    * Id : INT <<PK>>
+    --
+    * OrderNumber : VARCHAR(50)
+    * OrderDate : DATE
+    * BuyerId : INT <<FK>>
+    * ShopId : INT <<FK>>
+    * Total : DECIMAL(10,2)
+}
+
+entity "OrderItems" as OrderItems {
+    * Id : INT <<PK>>
+    --
+    * OrderId : INT <<FK>>
+    * ProductId : INT <<FK>>
+    * Quantity : INT
+    * Price : DECIMAL(10,2)
+    * Sum : DECIMAL(10,2)
+}
+
+entity "Production" as Production {
+    * Id : INT <<PK>>
+    --
+    * ProductionNumber : VARCHAR(50)
+    * ProductionDate : DATE
+    * ProductId : INT <<FK>>
+    * CompanyId : INT <<FK>>
+    * Quantity : INT
+}
+
+Companies ||--o{ Orders : "размещает (BuyerId)"
+Companies ||--o{ Orders : "исполняет (ShopId)"
+Companies ||--o{ Production : "изготавливает"
+
+Products ||--o{ ProductMaterials : "содержит материалы"
+Materials ||--o{ ProductMaterials : "используется в"
+
+Orders ||--o{ OrderItems : "включает"
+Products ||--o{ OrderItems : "заказывается"
+
+Products ||--o{ Production : "производится"
+
+@enduml
