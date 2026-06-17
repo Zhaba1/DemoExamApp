@@ -16,5 +16,8 @@ packages/
 Thumbs.db
 Desktop.ini
 
+# Office temp files
+~$*
+
 # Logs
 *.log
